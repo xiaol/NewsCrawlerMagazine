@@ -168,14 +168,14 @@ class VivaSpider(scrapy.Spider):
                         pass
 
     # 得到 topic block item 信息， 返回topic block item list
-    def magazine_topic_block_item_parser(self, magazine_topic_block_item_node_list, topic_id,  \
+    def magazine_topic_block_item_parser(self, magazine_topic_block_item_node_list, topic_block_id,  \
                                          magazine_url_list , index, topic_all_item_content_list):
 
         topic_block_item_list = []
         for magazine_topic_block_item_node in magazine_topic_block_item_node_list:
 
             topic_block_item = TopicBlockItem()
-            topic_block_item.topic_id = topic_id
+            topic_block_item.topic_block_id = topic_block_id
 
             topic_block_item.topic_block_item_id = magazine_topic_block_item_node.attrib['id']
             topic_block_item.topic_block_item_title = magazine_topic_block_item_node.attrib['title']
@@ -230,7 +230,8 @@ class VivaSpider(scrapy.Spider):
             magazine_url_list = []
 
             # 获取每个话题中block的信息
-            ret_topic_block_item_list = self.magazine_topic_block_item_parser(topic_block_item_node_list, topic_id, \
+            topic_block_id = topic_block.topic_block_id
+            ret_topic_block_item_list = self.magazine_topic_block_item_parser(topic_block_item_node_list, topic_block_id, \
                                                   magazine_url_list , inx, topic_all_item_content_list)
             topic_block.magazine_url_list = magazine_url_list
             topic_block.topic_block_item_list = ret_topic_block_item_list

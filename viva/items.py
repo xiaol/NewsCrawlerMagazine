@@ -41,8 +41,8 @@ class Channel(object):
 
 class TopicBlockItem(object):
     def __init__(self):
-        self.topic_id = ""                              # String : 话题 id  Primary Key.
-        self.topic_block_item_id = ""                   # String : 话题item id
+        self.topic_block_id = ""                        # String : 话题 block id
+        self.topic_block_item_id = ""                   # String : 话题item id primary key
         self.topic_block_item_title = ""                # String : 话题item title
         self.topic_block_item_img_url = ""              # String : 话题 小图
         self.topic_block_item_mimg_url = ""             # String : 话题 中图
