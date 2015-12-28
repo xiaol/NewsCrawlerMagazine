@@ -65,9 +65,10 @@ class VivaSpider(scrapy.Spider):
 
     # Magazine list action = 13
     url_magazine_list_head_str = "http://interface.vivame.cn/DataService/interface/andrd_getMaglistV2.jsp?brandid="
-    url_magazine_list_tail_str = "&pageindex=1&pagesize=6&clientversion=ZWDJA2480800100&sid=0505170305002839&type=0&width=0&height=0&clientversion=ZWDJA2480800100&uid=62037942&sid=0505170305002839&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-keys"
 
-    #url_magazine_tail_str = "&clientversion=ZWDJA2480800100&sid=6118079447449811&clientversion=ZWDJA2480800100&uid=62037942&sid=6118079447449811&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-ke"
+    # Pagesize can be very large, it can return very good answer.
+    url_magazine_list_tail_str = "&pageindex=1&pagesize=1073741824&clientversion=VIVAI3320480100&uid=62034360&source=subscribe&installversion=5.1.1&appName=ChangDuIOS&sid=0893903298101653"
+    # Get the magazine lists from one brand name magazine.
 
     def valid_id_check(self, vmagid):
         if vmagid in self.vmagid_set:
@@ -85,6 +86,8 @@ class VivaSpider(scrapy.Spider):
         topic_nodes_list = tree.xpath('.//block[@name="menu"] [@version="1"]')
 
         classification_tuple_list = []
+
+        # 获得该页面显示的所有 magazine 列表，注意 在 ”精选“ 显示页面有 “更多” 标记的里面，需要从新生成 更大的一个集合url去爬取。
         for topic_node in topic_nodes_list[0].getchildren():
 
             channel_item = ChannelItem()
@@ -135,7 +138,7 @@ class VivaSpider(scrapy.Spider):
                         url_id = url_id.split(':')[0]
 
                 # 根据 action 的种类 来判断访问的 url 类型
-                #try: 如果action = 0,那么我们获取每一篇杂志的实际内容文件的url,并解析出文章内容及图片地址和相关的杂志的vmagid,再根据此vmagid去不停获取新的杂志文章内容，直到递归完毕,vmagid是全局唯一的，保存在一个全局中，防止重复。
+                #try: 如果action = 0,那么我们获取每一篇杂志的实际内容文件的url,并解析出文章内容及图片地址和相关的杂志的vmagid, 再根据此vmagid去不停获取新的杂志文章内容，直到递归完毕,vmagid是全局唯一的，保存在一个全局中，防止重复。
                 if sub_block_node.attrib['action'] == '0':
                     print 'action type ' + sub_block_node.attrib['action']
                     magazine_url =  self.url_magazine_head_str + url_id + self.url_magazine_tail_str
@@ -158,6 +161,7 @@ class VivaSpider(scrapy.Spider):
                 # 如果action = 13，那么我们获取的是杂志的url_list，然后根据其中的vmagid去得到内容，同上。
                 else:
                     print 'action type ' + sub_block_node.attrib['action']
+                    # 这里我获取所有可用的magazine list
                     magazine_list_url = self.url_magazine_list_head_str + url_id + self.url_magazine_list_tail_str
                     try:
                         if self.valid_id_check(int(url_id)):
@@ -202,15 +206,10 @@ class VivaSpider(scrapy.Spider):
                     url_id = url_id.split(':')[0]
                     magazine_url =  self.url_magazine_head_str + url_id + self.url_magazine_tail_str
                     #判断vmagid 是否被访问过，如果被访问过，那么就continue，否则访问
-                    if url_id != 'http' and self.valid_id_check(url_id):
+                    if url_id != 'http' and self.valid_id_check(int(url_id)):
                         self.vmagid_set.add(url_id)
                         magazine_url_list.append(magazine_url)
             index += 1
-
-        print 'result in block item parser :'
-        for idx in xrange(0, len(topic_block_item_list)):
-            print topic_block_item_list[idx].topic_block_item_content
-            print topic_block_item_list[idx].topic_block_item_title
 
         return topic_block_item_list
 
@@ -296,8 +295,7 @@ class VivaSpider(scrapy.Spider):
         # 根据每个topic中的url去访问获得杂志详细内容。
         for topic_block in topic_block_list:
             for magazine_url in topic_block.magazine_url_list:
-                pass
-                #yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
+                yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
 
 
     # 得到话题的所有杂志的vmagid
@@ -308,7 +306,7 @@ class VivaSpider(scrapy.Spider):
                 vmagid_list.append(url)
 
 
-    # 得到本杂志所有的期数的vmagid
+    # 得到本杂志所有的期数的vmagid,并去获取文章
     def magazine_list_parser(self, response):
 
         magazine_list_page = response.body
@@ -343,6 +341,9 @@ class VivaSpider(scrapy.Spider):
         magazine_struct = Magazine()
         try:
             magazine_info_node = magazine_overview_tree.xpath(".//magazinevx2")[0]
+
+            print magazine_info_node.attrib['brandname']
+
             magazine_struct.magid = magazine_info_node.attrib['vmagid']
             magazine_struct.magazine_picture_url_list = magazine_info_node
             magazine_struct.magazine_img_url = magazine_info_node.attrib['img']
@@ -356,11 +357,11 @@ class VivaSpider(scrapy.Spider):
             magazine_struct.magazine_desc = "".join(magazine_overview_tree.xpath(".//briefvx2")[0].itertext())
 
             #samesort 是指同类期刊 tag。
-            samesort_magazine_node_list = magazine_overview_tree.xpath('.//samesort/item')
+            samesort_magazine_node_list = magazine_overview_tree.xpath('//samesort/item')
             magazine_struct.samesort_magid_list = self.get_magazine_id_list(samesort_magazine_node_list)
 
             # beforeperiod 是往期杂志 tag
-            beforeperiod_magazine_node_list = magazine_overview_tree.xpath('.//beforeperiod/item')
+            beforeperiod_magazine_node_list = magazine_overview_tree.xpath('//beforeperiod/item')
             magazine_struct.beforeperiod_magazine_id_list = self.get_magazine_id_list(beforeperiod_magazine_node_list)
 
             magazine_item['magazine'] = magazine_struct
@@ -372,33 +373,13 @@ class VivaSpider(scrapy.Spider):
         vmagid = magazine_info_node.attrib['vmagid']
 
         try:
-        # urlvx2 是格式为vx2的 文件格式 url 标签
+            #urlvx2 是格式为vx2的 文件格式 url 标签
             magazine_content_url = ''.join(magazine_overview_tree.xpath('.//urlvx2')[0].itertext())
         except Exception, e:
             print e
 
+        #去解析 页面内容.
         yield scrapy.Request(magazine_content_url, meta = {'vmagid' :str(vmagid) },callback = self.magazine_content_parser)
-
-
-        print 'After parse self web page content'
-        samesort_magazine_node_list = magazine_overview_tree.xpath('.//samesort/item')
-        for samesort_magazine_node in samesort_magazine_node_list:
-            vmagid =  samesort_magazine_node.attrib['vmagid']
-            if self.valid_id_check(int(vmagid)):
-                self.vmagid_set.add(int(vmagid))
-                magazine_url = self.url_magazine_head_str + samesort_magazine_node.attrib['vmagid'] + self.url_magazine_tail_str
-
-                yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
-
-        print 'from period_magazine'
-
-        for beforeperiod_magazine_node in beforeperiod_magazine_node_list:
-            vmagid = beforeperiod_magazine_node.attrib['vmagid']
-            if self.valid_id_check(int(vmagid)):
-                self.vmagid_set.add(int(vmagid))
-                magazine_url = self.url_magazine_head_str + beforeperiod_magazine_node.attrib['vmagid'] + self.url_magazine_tail_str
-                yield scrapy.Request(magazine_url ,callback =  self.magazine_overview_parser)
-
 
     # 用正则表达式去找到所有的html标签内的内容，并获取杂志内各篇文章的文本内容。
     def magazine_content_parser(self, response):
@@ -455,7 +436,6 @@ class VivaSpider(scrapy.Spider):
                     content = ""
                     for content_node in content_node_list:
                         content += "".join(content_node.itertext())
-
 
                     article.content_section_list.append(content)
 
