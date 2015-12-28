@@ -35,9 +35,9 @@ class ArticlePipeline(object):
         print 'article :'
         for article in article_list:
 
-            print 'title : ' + 'magid :'
+            print 'title : ' + '\t magid :'
 
-            print article.title + '/t'
+            print article.title + '\t' + article.magid
             print 10 * '-'
 
             print 'content :'
@@ -90,6 +90,7 @@ class ChannelPipeline(object):
 class TopicPipeline(object):
     def process_item(self, item, spider):
 
+
         print 'In topic pipeline'
         try:
             if item is None or item.get("item_type") != 'topic_item':
@@ -99,6 +100,9 @@ class TopicPipeline(object):
 
         print 'topic_name :'
         print item.get("topic_name")
+
+        print 'topic_channel_id :'
+        print item.get('topic_channel_id')
         print 'topic_id :'
         print item.get("topic_id")
 

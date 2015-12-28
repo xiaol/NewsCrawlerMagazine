@@ -62,7 +62,7 @@ class TopicItem(scrapy.Item):
     Hold all the topic items.
     """
     item_type = scrapy.Field()
-
+    topic_channel_id = scrapy.Field()
     topic_magid_list = scrapy.Field()               # String : magid list
     topic_id = scrapy.Field()                       # String : 话题 id
     topic_name = scrapy.Field()                     # String : 话题 name

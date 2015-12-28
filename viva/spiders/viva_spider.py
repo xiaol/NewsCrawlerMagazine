@@ -99,14 +99,13 @@ class VivaSpider(scrapy.Spider):
 
             yield channel_item
 
-            classification = topic_node.attrib['name']
-
+            channel_id = topic_node.attrib['topicid']
             topic_url = self.url_head_str + topic_node.attrib['url'] + self.url_category_tail_str
-            classification_tuple_list.append((topic_url, classification))
+            classification_tuple_list.append((topic_url, channel_id))
         
         # Visit all the big caption web cages by the urls we get from last page.
         for tuple_iter in classification_tuple_list:
-            yield scrapy.Request(tuple_iter[0], meta = {'classification' : tuple_iter[1]}, callback = self.category_page_parse)
+            yield scrapy.Request(tuple_iter[0], meta = {'channel_id' : tuple_iter[1]}, callback = self.category_page_parse)
             #category_page = urllib2.urlopen(tuple_iter[0]).read()
             #self.category_page_parse(category_page, tuple_iter[1])
 
@@ -118,7 +117,8 @@ class VivaSpider(scrapy.Spider):
 
         category_xml_parser = etree.HTMLParser()
         category_tree = etree.parse(StringIO(category_page), category_xml_parser)
-        
+
+        channel_id = response.meta['channel_id']
         # xml category topic - block - item
         block_node_list = category_tree.xpath('.//block [@id]')
         magazine_id_list = []
@@ -151,7 +151,7 @@ class VivaSpider(scrapy.Spider):
 
                     print 'topic magazine url :'
                     print magazine_url
-                    yield scrapy.Request(magazine_url, callback = self.magazine_topic_parser)
+                    yield scrapy.Request(magazine_url, meta = {'topic_channel_id': channel_id },callback = self.magazine_topic_parser)
 
                 elif sub_block_node.attrib['action'] == '11':
                     continue
@@ -242,6 +242,8 @@ class VivaSpider(scrapy.Spider):
 
         magazine_topic_page = response.body
         #print magazine_topic_page
+        topic_channel_id = response.meta['topic_channel_id']
+
         data = bs(magazine_topic_page)
 
         # CData 内部的数据使用个是beautifulsoup 去获取的，我们传递到 topic block item parser层去赋值.
@@ -256,11 +258,15 @@ class VivaSpider(scrapy.Spider):
 
         magazine_topic_xml_parser = etree.HTMLParser()
         magazine_topic_tree = etree.parse(StringIO(magazine_topic_page), magazine_topic_xml_parser)
-
-        if magazine_topic_tree is None or 'result' in magazine_topic_tree.xpath('//topic')[0].attrib.keys() :
+        try:
+            if magazine_topic_tree is None or 'result' in magazine_topic_tree.xpath('//topic')[0].attrib.keys() :
+                return
+        except Exception, e:
             return
+
         topic_item = TopicItem()
         topic_item['item_type'] = 'topic_item'
+        topic_item['topic_channel_id'] = topic_channel_id
 
         # 获取此文章所在杂志的杂志magid.
         topic_vmagid_list = []
@@ -367,9 +373,6 @@ class VivaSpider(scrapy.Spider):
         try:
         # urlvx2 是格式为vx2的 文件格式 url 标签
             magazine_content_url = ''.join(magazine_overview_tree.xpath('.//urlvx2')[0].itertext())
-            print "magazine_content_url :"
-            print magazine_content_url
-            print 200 *'-*-'
         except Exception, e:
             print e
 
