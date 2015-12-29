@@ -44,7 +44,7 @@ class ArticlePipeline(object):
             temp_dict = {}
 
             temp_dict.setdefault('title', article.title)
-            temp_dict.setdafault('magazine_id',article.magid)
+            temp_dict.setdefault('magazine_id',article.magid)
 
             temp_dict.setdefault('headline', article.headline_list)
             temp_dict.setdefault('content', article.content_section_list)
@@ -156,6 +156,10 @@ class TopicPipeline(object):
                 temp_dict.setdefault('topic_block_item_id', topic_block_item.topic_block_item_id)
                 temp_dict.setdefault('topic_block_item_title', topic_block_item.topic_block_item_title)
                 temp_dict.setdefault('topic_block_item_content', topic_block_item.topic_block_item_content)
+                temp_dict.setdefault('topic_block_id', topic_block_item.block_id)
+                temp_dict.setdefault('topic_block_item_img_url', topic_block_item.topic_block_item_img_url)
+                temp_dict.setdefault('topic_block_item_mimg_url', topic_block_item.topic_block_item_mimg_url)
+                temp_dict.setdefault('topic_block_item_bimg_url', topic_block_item.topic_block_item_bimg_url)
 
                 json_data = json.dumps(temp_dict, ensure_ascii = False)
                 ret = requests.post(es_magazine_topic_block_item_url, json_data)

@@ -362,8 +362,7 @@ class VivaSpider(scrapy.Spider):
             magazine_item['magazine'] = magazine_struct
 
         except Exception, e:
-            print e
-            pass
+            return
 
         yield magazine_item
 
