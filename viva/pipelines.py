@@ -35,26 +35,26 @@ class ArticlePipeline(object):
         #print 'article :'
         for article in article_list:
             pass
-            #print 'title : ' + '\t magid :'
+            print 'title : ' + '\t magid :'
 
-            #print article.title + '\t' + article.magid
-            #print 10 * '-'
+            print article.title + '\t' + article.magid
+            print 10 * '-'
 
-            #print 'content :'
-            #print len(article.content_section_list)
-            #for content in article.content_section_list:
-            #    print content
-            #print 10 *'-'
+            print 'content :'
+            print len(article.content_section_list)
+            for content in article.content_section_list:
+                print content
+            print 10 *'-'
 
-            #print 'headline :'
-            #print len(article.headline_list)
-            #for headline in article.headline_list:
-            #   print headline
-            #print 10 * '-'
+            print 'headline :'
+            print len(article.headline_list)
+            for headline in article.headline_list:
+               print headline
+            print 10 * '-'
 
-            #print 'img_url: '
-            #for img_url in article.url_picture_list:
-            #    print img_url
+            print 'img_url: '
+            for img_url in article.url_picture_list:
+                print img_url
 
 
 class MagazinePipeline(object):
