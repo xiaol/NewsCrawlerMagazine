@@ -55,14 +55,14 @@ class TopicBlock(object):
         self.topic_id = ""                        # String :topic id 作为Primary key.
         self.topic_block_id =  ""                 # String : 模块 id
         self.topic_block_item_list = []           # Item List : Block
-        self.magazine_url_list = []               # magazine url list.
+        #self.magazine_url_list = []               # magazine url list. Not used
 
 class TopicItem(scrapy.Item):
     """
     Hold all the topic items.
     """
     item_type = scrapy.Field()
-    topic_channel_id = scrapy.Field()
+    topic_channel_id = scrapy.Field()               #
     topic_magid_list = scrapy.Field()               # String : magid list
     topic_id = scrapy.Field()                       # String : 话题 id
     topic_name = scrapy.Field()                     # String : 话题 name
@@ -96,6 +96,7 @@ class ChannelItem(scrapy.Item):
     item_type = scrapy.Field()
 
     channel = scrapy.Field()
+
 
 class VivaItem(scrapy.Item):
     # define the fields for your item here like:
