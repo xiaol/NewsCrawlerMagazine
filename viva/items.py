@@ -23,7 +23,7 @@ class Magazine(object):
         self.magazine_brandid = ''               # String : 期刊id
         self.magazine_img_url = ''               # String : 期刊小图url
         self.magazine_mimg_url = ''              # String : 期刊大图url
-        self.magid = ''                          # String : 期刊杂志唯一标示id
+        self.magazine_id = ''                    # Int : 期刊杂志唯一标示id
 
 class Article(object):
     def __init__(self):
@@ -31,7 +31,7 @@ class Article(object):
         self.headline_list = []              # String : 段落标题
         self.content_section_list = []       # String : 文章章节
         self.url_picture_list = []           # String : 文章图片列表
-        self.magid = ''                      # String : 文章所在杂志的杂志id
+        self.magazine_id = ''                # Int : 文章所在杂志的杂志id
 
 class Channel(object):
     def __init__(self):

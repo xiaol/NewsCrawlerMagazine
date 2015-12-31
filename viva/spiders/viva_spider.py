@@ -21,6 +21,7 @@ import scrapy
 print sys.getdefaultencoding()
 reload(sys)
 sys.setdefaultencoding('utf-8')
+from scrapy_redis.spiders import RedisSpider
 
 print uniout
 print sys.getdefaultencoding()
@@ -30,10 +31,11 @@ from viva.items import Magazine, MagazineItem
 from viva.items import Channel, ChannelItem
 from viva.items import TopicItem, TopicBlock, TopicBlockItem
 
+
 import BeautifulSoup
 from BeautifulSoup import BeautifulSoup as bs
 
-class VivaSpider(scrapy.Spider):
+class VivaSpider(RedisSpider):
 
     name = 'viva'
     valid_brandid_set = set()
@@ -41,9 +43,9 @@ class VivaSpider(scrapy.Spider):
     #start_urls = [
     #        "http://interface.vivame.cn/DataService/interface/login4.jsp?mid=05cee906b27e34c38049a12eeb6125c3&installversion=5.0.2&apn=WIFI&isNewUser=false&clientversion=ZWDJA2480800100&uid=62037942&sid=8118510330804557&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-keys"
     #        ]
-    start_urls = [
-            "http://interface.vivame.cn/DataService/interface/login4.jsp?uid=62034360&platform=iphone&clientversion=VIVAI3320480100&device=iPhone%20OS&display=640*1136&os=9.2&installversion=5.1.1&appName=ChangDuIOS&apn=wifi&mid=91509b6cef8db90c9ab4506246ac73c4&isNewUser=false"
-            ]
+    #start_urls = [
+           # "http://interface.vivame.cn/DataService/interface/login4.jsp?uid=62034360&platform=iphone&clientversion=VIVAI3320480100&device=iPhone%20OS&display=640*1136&os=9.2&installversion=5.1.1&appName=ChangDuIOS&apn=wifi&mid=91509b6cef8db90c9ab4506246ac73c4&isNewUser=false"
+           # ]
     url_head_str = 'http://interface.vivame.cn/DataService/interface/'
 
     #url_category_tail_str = '&dataversion=0&clientversion=ZWDJA2480800100&uid=62037942&sid=0374665634984103&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-keys'
@@ -339,7 +341,8 @@ class VivaSpider(scrapy.Spider):
 
             vmagid = magazine_info_node.attrib['vmagid']
 
-            magazine_struct.magid = magazine_info_node.attrib['vmagid']
+            magazine_struct.magazine_id = magazine_info_node.attrib['vmagid']
+            print magazine_struct.magazine_id
             magazine_struct.magazine_picture_url_list = magazine_info_node
             magazine_struct.magazine_img_url = magazine_info_node.attrib['img']
             magazine_struct.magazine_mimg_url = magazine_info_node.attrib['mimg']
@@ -399,7 +402,7 @@ class VivaSpider(scrapy.Spider):
 
             article = Article()
             article.title = category_index
-            article.magid = vmagid
+            article.magazine_id = vmagid
 
             # 获取 包含此 title的html_section的内容，包括图片url和文本内容，获取后删除此html_section
             for html_section in html_section_list:
