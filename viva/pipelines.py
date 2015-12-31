@@ -50,9 +50,9 @@ class ArticlePipeline(object):
             temp_dict.setdefault('content', article.content_section_list)
             temp_dict.setdefault('img_url_list', article.url_picture_list)
 
-            print 'article :'
-
+            #print 'article :'
             json_data = json.dumps(temp_dict, ensure_ascii = False)
+            #print json_data
             try:
                 ret = requests.post(es_magazine_article_url, json_data)
             except Exception, e:
@@ -87,10 +87,12 @@ class MagazinePipeline(object):
         temp_dict.setdefault('samesort_magid_list', magazine.samesort_magid_list)
         temp_dict.setdefault('before_period_magid_list', magazine.beforeperiod_magazine_id_list)
 
-        print temp_dict
+        #print temp_dict
         json_data = json.dumps(temp_dict, ensure_ascii = False)
+        #print 'magazine '
+        #print json_data
         ret = requests.post(es_magazine_desc_url, json_data)
-        print ret.content
+        #print ret.content
 
 class ChannelPipeline(object):
     def __init__(self):
@@ -111,8 +113,10 @@ class ChannelPipeline(object):
         temp_dict.setdefault('channel_name', channel.channel_name)
         temp_dict.setdefault('channel_id', channel.channel_id)
 
-        print temp_dict
+        #print temp_dict
         json_data = json.dumps(temp_dict, ensure_ascii = False)
+        #print 'channel :'
+        #print json_data
         ret = requests.post(es_magazine_channel_url, json_data)
         print ret
 
@@ -133,9 +137,12 @@ class TopicPipeline(object):
         temp_dict.setdefault('topic_channel_id', item.get('topic_channel_id'))
 
         json_data = json.dumps(temp_dict, ensure_ascii = False)
+        print 'topic :'
+        print json_data
+
         ret = requests.post(es_magazine_topic_url, json_data)
 
-        print ret
+        #print ret
         topic_block_list = item.get('topic_block_list')
 
         es_magazine_topic_block_url = es_base_url +'topic_block_desc/'
@@ -147,20 +154,25 @@ class TopicPipeline(object):
 
             topic_block_item_list = topic_block.topic_block_item_list
             json_data = json.dumps(temp_dict, ensure_ascii = False)
+            print 'topic block :'
+            print json_data
             ret = requests.post(es_magazine_topic_block_url, json_data)
 
             es_magazine_topic_block_item_url = es_base_url +'topic_block_item/'
             for topic_block_item in topic_block_item_list:
 
                 temp_dict = {}
+
+                temp_dict.setdefault('topic_block_id', topic_block_item.topic_block_id)
                 temp_dict.setdefault('topic_block_item_id', topic_block_item.topic_block_item_id)
                 temp_dict.setdefault('topic_block_item_title', topic_block_item.topic_block_item_title)
                 temp_dict.setdefault('topic_block_item_content', topic_block_item.topic_block_item_content)
-                temp_dict.setdefault('topic_block_id', topic_block_item.block_id)
                 temp_dict.setdefault('topic_block_item_img_url', topic_block_item.topic_block_item_img_url)
                 temp_dict.setdefault('topic_block_item_mimg_url', topic_block_item.topic_block_item_mimg_url)
                 temp_dict.setdefault('topic_block_item_bimg_url', topic_block_item.topic_block_item_bimg_url)
 
                 json_data = json.dumps(temp_dict, ensure_ascii = False)
+                print 'block item :'
+                print json_data
                 ret = requests.post(es_magazine_topic_block_item_url, json_data)
-                print ret
+                #print ret

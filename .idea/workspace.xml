@@ -24,8 +24,8 @@
       <file leaf-file-name="viva_spider.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/viva/spiders/viva_spider.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-8.777778">
-              <caret line="348" column="62" selection-start-line="348" selection-start-column="44" selection-end-line="348" selection-end-column="62" />
+            <state vertical-scroll-proportion="-126.55556">
+              <caret line="397" column="24" selection-start-line="397" selection-start-column="24" selection-end-line="397" selection-end-column="24" />
               <folding>
                 <element signature="e#47#73#0" expanded="true" />
               </folding>
@@ -33,11 +33,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="pipelines.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="pipelines.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/viva/pipelines.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-2.0385852">
-              <caret line="45" column="32" selection-start-line="45" selection-start-column="25" selection-end-line="45" selection-end-column="32" />
+            <state vertical-scroll-proportion="3.6296296">
+              <caret line="94" column="26" selection-start-line="94" selection-start-column="26" selection-end-line="94" selection-end-column="26" />
               <folding>
                 <element signature="e#213#224#0" expanded="true" />
               </folding>
@@ -48,17 +48,17 @@
       <file leaf-file-name="items.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/viva/items.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="54" column="57" selection-start-line="54" selection-start-column="57" selection-end-line="54" selection-end-column="57" />
+            <state vertical-scroll-proportion="-18.777779">
+              <caret line="46" column="65" selection-start-line="43" selection-start-column="13" selection-end-line="43" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_psycopg.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_psycopg.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test_psycopg.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
+            <state vertical-scroll-proportion="0.35285053">
               <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
               <folding>
                 <element signature="e#42#55#0" expanded="true" />
@@ -75,8 +75,8 @@
         <option value="$PROJECT_DIR$/test_psycopg.py" />
         <option value="$PROJECT_DIR$/viva/settings.py" />
         <option value="$PROJECT_DIR$/viva/spiders/test_xml.py" />
-        <option value="$PROJECT_DIR$/viva/items.py" />
         <option value="$PROJECT_DIR$/viva/spiders/viva_spider.py" />
+        <option value="$PROJECT_DIR$/viva/items.py" />
         <option value="$PROJECT_DIR$/viva/pipelines.py" />
       </list>
     </option>
@@ -85,9 +85,9 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="435" />
+    <option name="x" value="45" />
     <option name="y" value="23" />
-    <option name="width" value="975" />
+    <option name="width" value="1253" />
     <option name="height" value="795" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
@@ -129,6 +129,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -163,7 +164,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -375,14 +375,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="435" y="23" width="975" height="795" extended-state="0" />
+    <frame x="45" y="23" width="1253" height="795" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24957265" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2033543" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15746753" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17282127" sideWeight="0.50353354" order="7" side_tool="true" content_ui="tabs" />
@@ -436,6 +436,24 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/viva/items.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="54" column="57" selection-start-line="54" selection-start-column="57" selection-end-line="54" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_psycopg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+          <folding>
+            <element signature="e#42#55#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/viva/spiders/viva_spider.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -849,40 +867,40 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_psycopg.py">
+    <entry file="file://$PROJECT_DIR$/viva/pipelines.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+        <state vertical-scroll-proportion="3.6296296">
+          <caret line="94" column="26" selection-start-line="94" selection-start-column="26" selection-end-line="94" selection-end-column="26" />
           <folding>
-            <element signature="e#42#55#0" expanded="true" />
+            <element signature="e#213#224#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/viva/items.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="54" column="57" selection-start-line="54" selection-start-column="57" selection-end-line="54" selection-end-column="57" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/viva/spiders/viva_spider.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.777778">
-          <caret line="348" column="62" selection-start-line="348" selection-start-column="44" selection-end-line="348" selection-end-column="62" />
+        <state vertical-scroll-proportion="-126.55556">
+          <caret line="397" column="24" selection-start-line="397" selection-start-column="24" selection-end-line="397" selection-end-column="24" />
           <folding>
             <element signature="e#47#73#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/viva/pipelines.py">
+    <entry file="file://$PROJECT_DIR$/viva/items.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.0385852">
-          <caret line="45" column="32" selection-start-line="45" selection-start-column="25" selection-end-line="45" selection-end-column="32" />
+        <state vertical-scroll-proportion="-18.777779">
+          <caret line="46" column="65" selection-start-line="43" selection-start-column="13" selection-end-line="43" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_psycopg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35285053">
+          <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
           <folding>
-            <element signature="e#213#224#0" expanded="true" />
+            <element signature="e#42#55#0" expanded="true" />
           </folding>
         </state>
       </provider>
