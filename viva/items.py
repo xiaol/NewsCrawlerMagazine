@@ -25,14 +25,6 @@ class Magazine(object):
         self.magazine_mimg_url = ''              # String : 期刊大图url
         self.magazine_id = ''                    # Int : 期刊杂志唯一标示id
 
-class Article(object):
-    def __init__(self):
-        self.title = ""                      # String : 主题
-        self.headline_list = []              # String : 段落标题
-        self.content_section_list = []       # String : 文章章节
-        self.url_picture_list = []           # String : 文章图片列表
-        self.magazine_id = ''                # Int : 文章所在杂志的杂志id
-
 class Channel(object):
     def __init__(self):
         self.channel_id = ""                   # String : 文章频道id
@@ -73,10 +65,10 @@ class ArticleItem(scrapy.Item):
     """
     Hold all the artile item.
     """
-
-    item_type = scrapy.Field()
-
-    article_list = scrapy.Field()                #List [class article]
+    title = scrapy.Field()               # title of the magazine
+    item_type = scrapy.Field()           # type to identify this type
+    magazine_id = scrapy.Field()         # magazine id
+    html = scrapy.Field()                #List [class article]
 
 
 class MagazineItem(scrapy.Item):

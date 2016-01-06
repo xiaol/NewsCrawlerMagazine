@@ -15,37 +15,39 @@ import re
 import time
 import sys
 
+import redis
 import copy
 import scrapy
 
 print sys.getdefaultencoding()
 reload(sys)
 sys.setdefaultencoding('utf-8')
-from scrapy_redis.spiders import RedisSpider
+#from scrapy_redis.spiders import RedisSpider
 
 print uniout
 print sys.getdefaultencoding()
 
-from viva.items import Article, ArticleItem
+from viva.items import ArticleItem
 from viva.items import Magazine, MagazineItem
 from viva.items import Channel, ChannelItem
 from viva.items import TopicItem, TopicBlock, TopicBlockItem
-
+#from scrapy import
 
 import BeautifulSoup
 from BeautifulSoup import BeautifulSoup as bs
 
-class VivaSpider(RedisSpider):
+class VivaSpider(scrapy.Spider):
 
+    r = redis.StrictRedis('localhost', port=6379, db=0)
     name = 'viva'
     valid_brandid_set = set()
     vmagid_set = set()
     #start_urls = [
     #        "http://interface.vivame.cn/DataService/interface/login4.jsp?mid=05cee906b27e34c38049a12eeb6125c3&installversion=5.0.2&apn=WIFI&isNewUser=false&clientversion=ZWDJA2480800100&uid=62037942&sid=8118510330804557&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-keys"
     #        ]
-    #start_urls = [
-           # "http://interface.vivame.cn/DataService/interface/login4.jsp?uid=62034360&platform=iphone&clientversion=VIVAI3320480100&device=iPhone%20OS&display=640*1136&os=9.2&installversion=5.1.1&appName=ChangDuIOS&apn=wifi&mid=91509b6cef8db90c9ab4506246ac73c4&isNewUser=false"
-           # ]
+    start_urls = [
+            "http://interface.vivame.cn/DataService/interface/login4.jsp?uid=62034360&platform=iphone&clientversion=VIVAI3320480100&device=iPhone%20OS&display=640*1136&os=9.2&installversion=5.1.1&appName=ChangDuIOS&apn=wifi&mid=91509b6cef8db90c9ab4506246ac73c4&isNewUser=false"
+            ]
     url_head_str = 'http://interface.vivame.cn/DataService/interface/'
 
     #url_category_tail_str = '&dataversion=0&clientversion=ZWDJA2480800100&uid=62037942&sid=0374665634984103&installversion=5.0.2&platform=android&appName=ChangDuAndroid&device=smartisan%20YQ601&display=1920x1080x3.0&os=Android4.4.4&ua=KTU84P%20dev-keys'
@@ -72,6 +74,12 @@ class VivaSpider(RedisSpider):
     # Pagesize can be very large, it can return very good answer.
     url_magazine_list_tail_str = "&pageindex=1&pagesize=1073741824&clientversion=VIVAI3320480100&uid=62034360&source=subscribe&installversion=5.1.1&appName=ChangDuIOS&sid=0893903298101653"
     # Get the magazine lists from one brand name magazine.
+
+    def valid_id_in_redis(self, vmagid):
+        if self.r.get(vmagid):
+            return False
+        else:
+            return True
 
     def valid_id_check(self, vmagid):
         if vmagid in self.vmagid_set:
@@ -152,15 +160,17 @@ class VivaSpider(RedisSpider):
                     magazine_url =  self.url_magazine_head_str + url_id + self.url_magazine_tail_str
 
                     #判断vmagid 是否被访问过，如果被访问过，那么就continue，否则访问
-                    if self.valid_id_check(int(url_id)):
-                        self.vmagid_set.add(int(url_id))
+                    #if self.valid_id_check(int(url_id)):
+                    if self.valid_id_in_redis(url_id):
+                        #self.vmagid_set.add(int(url_id))
+                        self.r.set(url_id, 'valid')
                         yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
 
                 elif sub_block_node.attrib['action'] == '6':
                     magazine_url = self.url_topic_head_str + url_id + self.url_topic_tail_str
 
-                    #print 'topic magazine url :'
-                    #print magazine_url
+                    print 'topic magazine url :'
+                    print magazine_url
                     yield scrapy.Request(magazine_url, meta = {'topic_channel_id': channel_id },callback = self.magazine_topic_parser)
 
                 elif sub_block_node.attrib['action'] == '11':
@@ -207,8 +217,10 @@ class VivaSpider(RedisSpider):
                     url_id = url_id.split(':')[0]
                     magazine_url =  self.url_magazine_head_str + url_id + self.url_magazine_tail_str
                     #判断vmagid 是否被访问过，如果被访问过，那么就continue，否则访问
-                    if url_id != 'http' and self.valid_id_check(int(url_id)):
-                        self.vmagid_set.add(url_id)
+                    #if url_id != 'http' and self.valid_id_check(int(url_id)):
+                        #self.vmagid_set.add(url_id)
+                    if url_id != 'http' and self.valid_id_in_redis(url_id):
+                        self.r.set(url_id, 'valid')
                         magazine_url_list.append(magazine_url)
             index += 1
 
@@ -254,7 +266,7 @@ class VivaSpider(RedisSpider):
             if isinstance(cd ,BeautifulSoup.CData):
                 if 'class'in cd:
                    continue
-                topic_all_item_content_list.append(cd)
+                topic_all_item_content_list.append(cd.replace("<![CDATA[", "").replace("]]>", ""))
                 i += 1
 
         magazine_topic_xml_parser = etree.HTMLParser()
@@ -313,9 +325,14 @@ class VivaSpider(RedisSpider):
         magazine_periods_node_list = magazine_list_tree.xpath('.//maglist/item')
         for magazine_periods_node in magazine_periods_node_list:
             vmagid =  magazine_periods_node.attrib['vmagid']
-
-            magazine_url = self.url_magazine_head_str + magazine_periods_node.attrib['vmagid'] + self.url_magazine_tail_str
-            yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
+            if self.valid_id_in_redis(vmagid):
+                self.r.set(vmagid, 'valid')
+                magazine_url = self.url_magazine_head_str + magazine_periods_node.attrib['vmagid'] + self.url_magazine_tail_str
+                print 'magazine overview page url :'
+                print magazine_url
+                yield scrapy.Request(magazine_url, callback = self.magazine_overview_parser)
+            else:
+                continue
     # 得到相关杂志或者前期杂志的 id 列表。
     def get_magazine_id_list(self, item_list):
         vmagid_list = []
@@ -335,25 +352,38 @@ class VivaSpider(RedisSpider):
         magazine_item = MagazineItem()
         magazine_item['item_type'] = 'magazine_item'
 
-        magazine_struct = Magazine()
         try:
-            magazine_info_node = magazine_overview_tree.xpath(".//magazinevx2")[0]
-
-            vmagid = magazine_info_node.attrib['vmagid']
+            magazine_struct = Magazine()
+            try:
+                magazine_info_node = magazine_overview_tree.xpath(".//magazinevx2")[0]
+            except Exception, e:
+                magazine_info_node = magazine_overview_tree.xpath(".//magazine [@vmagid]")[0]
+            #vmagid = magazine_info_node.attrib['vmagid']
+            magazine_struct.magazine_date = magazine_info_node.attrib['date']
+            print 'magazine date :'
+            print magazine_struct.magazine_date
 
             magazine_struct.magazine_id = magazine_info_node.attrib['vmagid']
-            print magazine_struct.magazine_id
             magazine_struct.magazine_picture_url_list = magazine_info_node
             magazine_struct.magazine_img_url = magazine_info_node.attrib['img']
             magazine_struct.magazine_mimg_url = magazine_info_node.attrib['mimg']
             magazine_struct.magazine_brandid = magazine_info_node.attrib["brandid"]
             magazine_struct.magazine_brandname = magazine_info_node.attrib["brandname"]
             magazine_struct.magazine_channelname = magazine_info_node.attrib['channelname']
-            magazine_struct.magazine_date = magazine_info_node.attrib['date']
             #magazine_struct.magazine_brandperiod = magazine_info_node.attrib['brandperiod']
             magazine_struct.magazine_period =  magazine_info_node.attrib['period']
-            magazine_struct.magazine_desc = "".join(magazine_overview_tree.xpath(".//briefvx2")[0].itertext())
 
+            data = bs(magazine_overview_page)
+            print 'length of the cdata list :'
+
+            magazine_desc_cdata_list = data.findAll(text= True)
+            print len(magazine_desc_cdata_list)
+            for iter_desc in magazine_desc_cdata_list:
+                if isinstance(iter_desc ,BeautifulSoup.CData):
+                    magazine_struct.magazine_desc = iter_desc
+
+            print 'magazine desc cdata :'
+            print magazine_struct.magazine_desc
             #samesort 是指同类期刊 tag。
             samesort_magazine_node_list = magazine_overview_tree.xpath('//samesort/item')
             magazine_struct.samesort_magid_list = self.get_magazine_id_list(samesort_magazine_node_list)
@@ -365,15 +395,21 @@ class VivaSpider(RedisSpider):
             magazine_item['magazine'] = magazine_struct
 
         except Exception, e:
-            return
+            print e
+            #return
+        try:
+            #urlvx2 是格式为vx2的 文件格式 url 标签
+            magazine_content_url = ''.join(magazine_overview_tree.xpath('.//urlvx2')[0].itertext())
+        except Exception, e:
+            print e
+            magazine_content_url = ''.join(magazine_overview_tree.xpath('.//url [@size]')[0].itertext())
 
         yield magazine_item
-
-        #urlvx2 是格式为vx2的 文件格式 url 标签
-        magazine_content_url = ''.join(magazine_overview_tree.xpath('.//urlvx2')[0].itertext())
-
+        print 'magazine_content_url :'
+        print magazine_content_url
+        print 'Extract content from a lot of mess codes.'
         #去解析 页面内容.
-        yield scrapy.Request(magazine_content_url, meta = {'vmagid' :str(vmagid) },callback = self.magazine_content_parser)
+        yield scrapy.Request(magazine_content_url, meta = {'vmagid' :str(magazine_struct.magazine_id) },callback = self.magazine_content_parser)
 
     # 用正则表达式去找到所有的html标签内的内容，并获取杂志内各篇文章的文本内容。
     def magazine_content_parser(self, response):
@@ -383,84 +419,133 @@ class VivaSpider(RedisSpider):
         magazine_file = response.body
 
         pattern = "<html>.*?</html>"
-        html_section_list = re.findall(pattern, magazine_file.replace("\n", ""))
-        category_list = []
 
-        #print html_section_list
-        self.get_category_index(html_section_list, category_list)
+        html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
 
-        # 根据文章标题对 html_section里面的内容进行组合。杂志文章分为不定的篇幅，篇幅张数由tag 和 title 的出现次数有关。
+        url_magazine_img_str = "http://wap.vivame.cn/mag/"
+        url_magazine_img_str += vmagid
+        url_magazine_img_str += "/vx2/"
 
-        article_list = []
-        articles_item = ArticleItem()
-        articles_item['item_type'] = 'articles_item'
-
-        for category_index in category_list:
-
-            if category_index == '封面' or category_index == '封底':
-                continue
-
-            article = Article()
-            article.title = category_index
-            article.magazine_id = vmagid
-
-            # 获取 包含此 title的html_section的内容，包括图片url和文本内容，获取后删除此html_section
-            for html_section in html_section_list:
-
-                html_section_xml_parser = etree.HTMLParser()
-
-                url_magazine_img_str = "http://wap.vivame.cn/mag/"
-                url_magazine_img_str += vmagid
-                url_magazine_img_str += "/vx2/"
-
-                html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
-                if category_index in "".join(html_section_tree.xpath('.//title')[0].itertext()):
-
-                    # 将headline 包括h1 或者 h2的所有文本获取出来。
-                    try:
-                        headline = "".join(html_section_tree.xpath('.//div [@class="h1" or @class = "h2"]')[0].itertext())
-                    except Exception, e:
-                        headline = ""
-                        pass
-
-                    article.headline_list.append(headline)
-
-                    content_node_list = html_section_tree.xpath('.//div [@class="text"]//p')
-                    content = ""
-                    for content_node in content_node_list:
-                        content += "".join(content_node.itertext())
-
-                    article.content_section_list.append(content)
-
-                    # 抽取出来杂志出来以后，将这个html_section 删除掉。
-                    url_magazine_img_node_list = html_section_tree.xpath('.//img')
-                    img_node_value = url_magazine_img_node_list[-1].attrib['onclick']
-                    url_magazine_img_tail_str = img_node_value.replace("popArticleImage", "").replace("('", "").replace("')", "")
-                    url_magazine_img_str += url_magazine_img_tail_str
-
-                    article.url_picture_list.append(url_magazine_img_str)
-
-                    html_section_list.remove(html_section)
-
-            article_list.append(article)
-
-        articles_item['article_list'] = article_list
-        yield articles_item
-
-    # 从包含目录的html_section中获取杂志的目录索引 放到 category_list 中。
-    def get_category_index(self, html_section_list, category_list):
         for html_section in html_section_list:
+            article_item = ArticleItem()
+            article_item['item_type'] = 'article_item'
+
+            article_item['magazine_id'] = vmagid
             html_section_xml_parser = etree.HTMLParser()
             html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+            title = html_section_tree.xpath('//title')[0].text
+            if 'viva' in title:
+                continue
+            article_item['title'] = title
+            url_magazine_img_node_list = html_section_tree.xpath('//img')
+            # get the value of specified key, and replace it with correct url
+            for url_magazine_img_node in url_magazine_img_node_list:
+                #src img url
 
-            if "".join(html_section_tree.xpath('.//title')[0].itertext()) == "目录":
+                # onlick img url
+                try:
+                    onclick_img_value = url_magazine_img_node.attrib['onclick']
+                    relative_img_src_url = onclick_img_value.replace("popArticleImage", "").replace("('", "").replace("')", "")
+                    correct_img_src_url = url_magazine_img_str + relative_img_src_url
+                    tmp_html_section = html_section.replace(relative_img_src_url, correct_img_src_url)
 
-                # 获取所有目录索引节点via etree
-                category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
+                    img_src_value = url_magazine_img_node.attrib['src']
+                    target_img_src_url = '"' + img_src_value + '"'
+                    target_correct_img_src_url = '"' + correct_img_src_url + '"'
+                    final_html_section = tmp_html_section.replace(target_img_src_url, target_correct_img_src_url)
 
-                # 获取所有文字索引
-                for category_index_node in category_index_node_list:
-                    category_list.append("".join(category_index_node.itertext()))
-                # 获取到这个目录html section后，便可以去掉这个section，减少运算
-                html_section_list.remove(html_section)
-                break
+                    # Store the change.
+                    html_section = final_html_section
+                except Exception, e:
+                    print 'error in magazine content parser'
+                    print e
+
+            article_item['html'] = html_section
+            yield article_item
+
+        # category_list = []
+        #
+        # print 'html content section list is :'
+        # for html_section in html_section_list:
+        #     print html_section
+        # try:
+        #     self.get_category_index(html_section_list, category_list)
+        # except Exception, e:
+        #     print e
+        # 根据文章标题对 html_section里面的内容进行组合。杂志文章分为不定的篇幅，篇幅张数由tag 和 title 的出现次数有关。
+
+        # article_list = []
+        # articles_item = ArticleItem()
+        # articles_item['item_type'] = 'articles_item'
+        #
+        # for category_index in category_list:
+        #
+        #     if category_index == '封面' or category_index == '封底':
+        #         continue
+        #
+        #     article = Article()
+        #     article.title = category_index
+        #     article.magazine_id = vmagid
+        #
+        #     # 获取 包含此 title的html_section的内容，包括图片url和文本内容，获取后删除此html_section
+        #     for html_section in html_section_list:
+        #
+        #         html_section_xml_parser = etree.HTMLParser()
+        #
+        #         url_magazine_img_str = "http://wap.vivame.cn/mag/"
+        #         url_magazine_img_str += vmagid
+        #         url_magazine_img_str += "/vx2/"
+        #
+        #         html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+        #         if category_index in "".join(html_section_tree.xpath('.//title')[0].itertext()):
+        #
+        #             # 将headline 包括h1 或者 h2的所有文本获取出来。
+        #             try:
+        #                 headline = "".join(html_section_tree.xpath('.//div [@class="h1" or @class = "h2"]')[0].itertext())
+        #
+        #                 article.headline_list.append(headline)
+        #
+        #                 content_node_list = html_section_tree.xpath('.//div [@class="text"]//p')
+        #                 content = ""
+        #                 print 'content :'
+        #                 for content_node in content_node_list:
+        #                     print ''.join(content_node.itertext())
+        #                     content += "".join(content_node.itertext())
+        #
+        #                 article.content_section_list.append(content)
+        #
+        #                 # 抽取出来杂志出来以后，将这个html_section 删除掉。
+        #                 url_magazine_img_node_list = html_section_tree.xpath('.//img')
+        #                 img_node_value = url_magazine_img_node_list[-1].attrib['onclick']
+        #                 url_magazine_img_tail_str = img_node_value.replace("popArticleImage", "").replace("('", "").replace("')", "")
+        #                 url_magazine_img_str += url_magazine_img_tail_str
+        #
+        #                 article.url_picture_list.append(url_magazine_img_str)
+        #
+        #                 html_section_list.remove(html_section)
+        #             except Exception, e:
+        #                 headline = ""
+        #                 print e
+        #                 pass
+        #     article_list.append(article)
+        #
+        # articles_item['article_list'] = article_list
+        #yield articles_item
+
+    # 从包含目录的html_section中获取杂志的目录索引 放到 category_list 中。
+    # def get_category_index(self, html_section_list, category_list):
+    #     for html_section in html_section_list:
+    #         html_section_xml_parser = etree.HTMLParser()
+    #         html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+    #
+    #         if "".join(html_section_tree.xpath('.//title')[0].itertext()) == "目录":
+    #
+    #             # 获取所有目录索引节点via etree
+    #             category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
+    #
+    #             # 获取所有文字索引
+    #             for category_index_node in category_index_node_list:
+    #                 category_list.append("".join(category_index_node.itertext()))
+    #             # 获取到这个目录html section后，便可以去掉这个section，减少运算
+    #             html_section_list.remove(html_section)
+    #             break
