@@ -419,9 +419,8 @@ class VivaSpider(scrapy.Spider):
         magazine_file = response.body
 
         pattern = "<html>.*?</html>"
-        try:
-            html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
-        except Exception, e:
+        html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
+        if html_section_list == []:
             article_item = ArticleItem()
             article_item['item_type'] = 'article_item'
             article_item['magazine_id'] = vmagid

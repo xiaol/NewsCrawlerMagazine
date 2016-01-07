@@ -48,15 +48,13 @@ class ArticlePipeline(object):
 
         print 'article :'
         temp_dict = {}
-        temp_dict['title'] = item.get('title').encode('utf-8')
         temp_dict['magazine_id'] = item.get('magazine_id')
-
-
         html_data  = item.get('html')
         if html_data is None:
             target_url = es_base_url + 'magazine_desc/' + temp_dict['magazine_id'] + '/'
             requests.delete(target_url)
         else:
+            temp_dict['title'] = item.get('title').encode('utf-8')
             temp_dict['html'] = html_data
             json_data = json.dumps(temp_dict, ensure_ascii = False)
             print json_data
