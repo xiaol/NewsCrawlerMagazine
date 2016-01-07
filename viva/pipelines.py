@@ -49,13 +49,19 @@ class ArticlePipeline(object):
         print 'article :'
         temp_dict = {}
         temp_dict['title'] = item.get('title').encode('utf-8')
-        temp_dict['html'] = item.get('html')
         temp_dict['magazine_id'] = item.get('magazine_id')
 
-        json_data = json.dumps(temp_dict, ensure_ascii = False)
-        print json_data
-        ret = requests.post(es_magazine_article_url, json_data)
-        print ret
+
+        html_data  = item.get('html')
+        if html_data is None:
+            target_url = es_base_url + 'magazine_desc/' + temp_dict['magazine_id'] + '/'
+            requests.delete(target_url)
+        else:
+            temp_dict['html'] = html_data
+            json_data = json.dumps(temp_dict, ensure_ascii = False)
+            print json_data
+            ret = requests.post(es_magazine_article_url, json_data)
+            print ret
 
 
 class MagazinePipeline(object):
@@ -94,7 +100,7 @@ class MagazinePipeline(object):
 
         #print pos_ret
 
-        es_magazine_desc_url = es_base_url + 'magazine_desc/'
+        es_magazine_desc_url = es_base_url + 'magazine_desc/' + magazine.magazine_id + '/'
         temp_dict = {}
 
         temp_dict.setdefault('period', magazine.magazine_period.encode('utf-8'))
@@ -112,7 +118,8 @@ class MagazinePipeline(object):
         json_data = json.dumps(temp_dict, ensure_ascii = False)
         print 'magazine: '
         print json_data
-        ret = requests.post(es_magazine_desc_url, json_data)
+        # We use (http) put method to create index of elasitcsearch.
+        ret = requests.put(es_magazine_desc_url, json_data)
         print ret
 
 class ChannelPipeline(object):

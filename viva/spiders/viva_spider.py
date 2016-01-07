@@ -419,8 +419,15 @@ class VivaSpider(scrapy.Spider):
         magazine_file = response.body
 
         pattern = "<html>.*?</html>"
-
-        html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
+        try:
+            html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
+        except Exception, e:
+            article_item = ArticleItem()
+            article_item['item_type'] = 'article_item'
+            article_item['magazine_id'] = vmagid
+            article_item['html'] = None
+            yield article_item
+            return
 
         url_magazine_img_str = "http://wap.vivame.cn/mag/"
         url_magazine_img_str += vmagid
