@@ -36,6 +36,9 @@ from viva.items import TopicItem, TopicBlock, TopicBlockItem
 import BeautifulSoup
 from BeautifulSoup import BeautifulSoup as bs
 
+import datetime
+from datetime import date
+
 class VivaSpider(scrapy.Spider):
 
     r = redis.StrictRedis('localhost', port=6379, db=0)
@@ -359,9 +362,20 @@ class VivaSpider(scrapy.Spider):
             except Exception, e:
                 magazine_info_node = magazine_overview_tree.xpath(".//magazine [@vmagid]")[0]
             #vmagid = magazine_info_node.attrib['vmagid']
+
+            date_now = datetime.datetime.now().date()
+            threshold_days = 160
+
+            magazine_date = magazine_info_node.attrib['date']
+            magazine_ymd_list = magazine_date.split('-')
+            magazine_datetime_date = date(int(magazine_ymd_list[0]), int(magazine_ymd_list[1]), int(magazine_ymd_list[2]))
+
+            time_delta = date_now - magazine_datetime_date
+
+            if time_delta.days > threshold_days:
+                return
+
             magazine_struct.magazine_date = magazine_info_node.attrib['date']
-            print 'magazine date :'
-            print magazine_struct.magazine_date
 
             magazine_struct.magazine_id = magazine_info_node.attrib['vmagid']
             magazine_struct.magazine_picture_url_list = magazine_info_node
