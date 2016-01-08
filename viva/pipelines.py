@@ -13,7 +13,12 @@ import uniout
 import requests
 import json
 
+print sys.getdefaultencoding()
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
+print 'pipeline encoding :'
+print sys.getdefaultencoding()
 #conn_string = "host = '121.40.34.56' dbname = 'posgtes' password = 'LYpg&postgres@zzg' "
 
 es_base_url = "http://source2.deeporiginalx.com:9200/magazine/"
