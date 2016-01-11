@@ -434,6 +434,7 @@ class VivaSpider(scrapy.Spider):
 
         pattern = "<html>.*?</html>"
         html_section_list = re.findall(pattern, magazine_file.replace("\n", "").strip())
+
         if html_section_list == []:
             article_item = ArticleItem()
             article_item['item_type'] = 'article_item'
@@ -446,29 +447,105 @@ class VivaSpider(scrapy.Spider):
         url_magazine_img_str += vmagid
         url_magazine_img_str += "/vx2/"
 
-        index = 1
-        for html_section in html_section_list:
-            article_item = ArticleItem()
-            article_item['item_type'] = 'article_item'
-            article_item['article_id'] = index
-            index += 1
+        # 封底 index = len(html_section)
+        back_cover_index = len(html_section_list)
 
-            article_item['magazine_id'] = vmagid
-            html_section_xml_parser = etree.HTMLParser()
-            html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
-            #html_section_tree = etree.parse(html_section, html_section_xml_parser)
+        # 以category_list中的目录为标记，去重新排序html_section_list中<html>.*?</html>块的顺序
+        title_list = []
+        self.get_category_list(html_section_list, title_list)
+
+        index = 2
+        for title in title_list:
+            # 记录article_tile 下有几篇文章
+            count = 0
+            if title == '封面' or title == '封底' or title == '目录':
+                continue
+
+            for html_section in html_section_list:
+                title_pattern = "<title>.*</title>"
+                title_result = re.findall(title_pattern, html_section)[0]
+                article_title = title_result.replace("<title>", "").replace("</title>", "")
+                if title in article_title:
+                    article_item = ArticleItem()
+                    article_item['item_type'] = 'article_item'
+                    article_item['magazine_id'] = vmagid
+                    count += 1
+                    article_item['title'] = article_title
+                    if title == article_title:
+                        article_item['article_id'] = index + 1
+                    else:
+                        article_index = article_title.replace(title, "").replace("(","").replace(")","")
+                        article_item['article_id'] = str(index + int(article_index))
+
+                    modified_html_section = self.modify_img_url(html_section, vmagid, url_magazine_img_str)
+                    article_item['html'] = modified_html_section
+
+                    yield article_item
+                    # 最后去掉此 html_section
+                    html_section_list.remove(html_section)
+                else:
+                    continue
+
+            # 循环结束后，增加 index.
+            index += count
+
+
+        # 封面 index = 1，目录 index = 2,
+        for html_section in html_section_list:
             title_pattern = "<title>.*</title>"
             title_result = re.findall(title_pattern, html_section)[0]
-            title = title_result.replace("<title>", "").replace("</title>", "")
-            #title = html_section_tree.xpath('//title')[0].text
-            if 'viva' in title:
-                continue
-            article_item['title'] = title
-            url_magazine_img_node_list = html_section_tree.xpath('//img')
-            # get the value of specified key, and replace it with correct url
-            for url_magazine_img_node in url_magazine_img_node_list:
-                #src img url
+            article_title = title_result.replace("<title>", "").replace("</title>", "")
 
+            article_item = ArticleItem()
+            article_item['title'] = article_title
+            article_item['item_type'] = 'article_item'
+            article_item['magazine_id'] = vmagid
+
+            if article_title == '目录':
+                article_item['article_id'] = '2'
+                html_section_xml_parser = etree.HTMLParser()
+                html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+                onclick_node_list = html_section_tree.xpath('//li')
+                for onclick_node in onclick_node_list:
+                    onclick_attrib = onclick_node.attrib['onclick']
+                    onclick_img_value = onclick_attrib.replace("linkArticle('","").replace("')","")
+                    target_magazine_url = url_magazine_img_str + onclick_img_value
+                    tmp_html = html_section.replace(onclick_img_value, target_magazine_url)
+                    html_section = tmp_html
+                article_item['html'] = html_section
+            elif article_title == '封面':
+                article_item['article_id'] = '1'
+                article_item['html'] = html_section
+            else :
+                article_item['article_id'] = str(back_cover_index)
+                article_item['html'] = html_section
+            yield article_item
+
+    # 从包含目录的html_section中获取杂志的目录 放到 category_list 中，用这个目录列表给文章对应的id。
+    def get_category_list(self, html_section_list, category_list):
+         for html_section in html_section_list:
+             html_section_xml_parser = etree.HTMLParser()
+             html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+
+             if "".join(html_section_tree.xpath('.//title')[0].itertext()) == "目录":
+
+                 # 获取所有目录索引节点via etree
+                 category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
+
+                 # 获取所有文字索引
+                 for category_index_node in category_index_node_list:
+                     category_list.append("".join(category_index_node.itertext()))
+                 break
+
+    def modify_img_url(self, html_section, vmagid, url_magazine_img_str):
+
+        html_section_xml_parser = etree.HTMLParser()
+        html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+        url_magazine_img_node_list = html_section_tree.xpath('//img')
+        # get the value of specified key, and replace it with correct url
+        for url_magazine_img_node in url_magazine_img_node_list:
+        #src img url
+        #
                 # onlick img url
                 try:
                     onclick_img_value = url_magazine_img_node.attrib['onclick']
@@ -487,8 +564,53 @@ class VivaSpider(scrapy.Spider):
                     print 'error in magazine content parser'
                     print e
 
-            article_item['html'] = html_section
-            yield article_item
+        return html_section
+
+        # index = 1
+        # for html_section in html_section_list:
+        #     article_item = ArticleItem()
+        #     article_item['item_type'] = 'article_item'
+        #     article_item['article_id'] = index
+        #     index += 1
+        #
+        #     article_item['magazine_id'] = vmagid
+        #     html_section_xml_parser = etree.HTMLParser()
+        #     html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+        #     #html_section_tree = etree.parse(html_section, html_section_xml_parser)
+        #     title_pattern = "<title>.*</title>"
+        #     title_result = re.findall(title_pattern, html_section)[0]
+        #     title = title_result.replace("<title>", "").replace("</title>", "")
+        #     #title = html_section_tree.xpath('//title')[0].text
+        #     if 'viva' in title:
+        #         continue
+        #     article_item['title'] = title
+        #     url_magazine_img_node_list = html_section_tree.xpath('//img')
+        #     # get the value of specified key, and replace it with correct url
+        #     for url_magazine_img_node in url_magazine_img_node_list:
+        #         #src img url
+        #
+        #         # onlick img url
+        #         try:
+        #             onclick_img_value = url_magazine_img_node.attrib['onclick']
+        #             relative_img_src_url = onclick_img_value.replace("popArticleImage", "").replace("('", "").replace("')", "")
+        #             correct_img_src_url = url_magazine_img_str + relative_img_src_url
+        #             tmp_html_section = html_section.replace(relative_img_src_url, correct_img_src_url)
+        #
+        #             img_src_value = url_magazine_img_node.attrib['src']
+        #             target_img_src_url = '"' + img_src_value + '"'
+        #             target_correct_img_src_url = '"' + correct_img_src_url + '"'
+        #             final_html_section = tmp_html_section.replace(target_img_src_url, target_correct_img_src_url)
+        #
+        #             # Store the change.
+        #             html_section = final_html_section
+        #         except Exception, e:
+        #             print 'error in magazine content parser'
+        #             print e
+        #
+        #     article_item['html'] = html_section
+        #     yield article_item
+
+
 
         # category_list = []
         #
@@ -559,20 +681,3 @@ class VivaSpider(scrapy.Spider):
         # articles_item['article_list'] = article_list
         #yield articles_item
 
-    # 从包含目录的html_section中获取杂志的目录索引 放到 category_list 中。
-    # def get_category_index(self, html_section_list, category_list):
-    #     for html_section in html_section_list:
-    #         html_section_xml_parser = etree.HTMLParser()
-    #         html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
-    #
-    #         if "".join(html_section_tree.xpath('.//title')[0].itertext()) == "目录":
-    #
-    #             # 获取所有目录索引节点via etree
-    #             category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
-    #
-    #             # 获取所有文字索引
-    #             for category_index_node in category_index_node_list:
-    #                 category_list.append("".join(category_index_node.itertext()))
-    #             # 获取到这个目录html section后，便可以去掉这个section，减少运算
-    #             html_section_list.remove(html_section)
-    #             break
