@@ -65,6 +65,7 @@ class ArticleItem(scrapy.Item):
     """
     Hold all the artile item.
     """
+    article_id = scrapy.Field()          # Index of the magazine article
     title = scrapy.Field()               # title of the magazine
     item_type = scrapy.Field()           # type to identify this type
     magazine_id = scrapy.Field()         # magazine id

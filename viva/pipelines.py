@@ -60,6 +60,7 @@ class ArticlePipeline(object):
         else:
             temp_dict['title'] = item.get("title").encode('utf-8')
             temp_dict['html'] = html_data
+            temp_dict['article_id'] = str(item.get("article_id"))
             json_data = json.dumps(temp_dict, ensure_ascii = False)
             print json_data
             ret = requests.post(es_magazine_article_url, json_data)

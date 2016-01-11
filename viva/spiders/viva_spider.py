@@ -446,10 +446,12 @@ class VivaSpider(scrapy.Spider):
         url_magazine_img_str += vmagid
         url_magazine_img_str += "/vx2/"
 
+        index = 1
         for html_section in html_section_list:
             article_item = ArticleItem()
             article_item['item_type'] = 'article_item'
-
+            article_item['article_id'] = index
+            index += 1
 
             article_item['magazine_id'] = vmagid
             html_section_xml_parser = etree.HTMLParser()
