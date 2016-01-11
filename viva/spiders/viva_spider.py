@@ -450,10 +450,15 @@ class VivaSpider(scrapy.Spider):
             article_item = ArticleItem()
             article_item['item_type'] = 'article_item'
 
+
             article_item['magazine_id'] = vmagid
             html_section_xml_parser = etree.HTMLParser()
             html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
-            title = html_section_tree.xpath('//title')[0].text
+            #html_section_tree = etree.parse(html_section, html_section_xml_parser)
+            title_pattern = "<title>.*</title>"
+            title_result = re.findall(title_pattern, html_section)[0]
+            title = title_result.replace("<title>", "").replace("</title>", "")
+            #title = html_section_tree.xpath('//title')[0].text
             if 'viva' in title:
                 continue
             article_item['title'] = title
