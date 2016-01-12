@@ -518,13 +518,17 @@ class VivaSpider(scrapy.Spider):
                     target_magazine_url = url_magazine_img_str + onclick_img_value
                     tmp_html = html_section.replace(onclick_img_value, target_magazine_url)
                     html_section = tmp_html
-                article_item['html'] = html_section
+                    article_item['html'] = html_section
+
             elif article_title == '封面':
                 article_item['article_id'] = '1'
-                article_item['html'] = html_section
+                modified_html_section = self.modify_img_url(html_section, vmagid, url_magazine_img_str)
+                article_item['html'] = modified_html_section
+                
             elif article_title == '封底' :
                 article_item['article_id'] = str(back_cover_index)
-                article_item['html'] = html_section
+                modified_html_section = self.modify_img_url(html_section, vmagid, url_magazine_img_str)
+                article_item['html'] = modified_html_section
             else:
                 continue
             yield article_item
