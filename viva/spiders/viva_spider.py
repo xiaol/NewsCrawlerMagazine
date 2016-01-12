@@ -453,18 +453,26 @@ class VivaSpider(scrapy.Spider):
         # 以category_list中的目录为标记，去重新排序html_section_list中<html>.*?</html>块的顺序
         title_list = []
         self.get_category_list(html_section_list, title_list)
-
+        print 'title list:'
+        print title_list
         index = 2
         for title in title_list:
             # 记录article_tile 下有几篇文章
             count = 0
-            if title == '封面' or title == '封底':
+            if title == u'封面' or title == u'封底':
                 continue
             title_pattern = "<title>.*</title>"
             for html_section in html_section_list:
                 title_result = re.findall(title_pattern, html_section)[0]
-                # print 'title_result :'
-                # print title_result
+                print 'title_result :'
+                print title_result
+                print 'type of title_result'
+                print type(title_result)
+                print 50 * '*'
+                print 'title :'
+                print title
+                print 'type of title'
+                print type(title)
                 if title.encode('utf-8') in title_result:
                     article_item = ArticleItem()
                     article_item['item_type'] = 'article_item'
@@ -536,17 +544,26 @@ class VivaSpider(scrapy.Spider):
     # 从包含目录的html_section中获取杂志的目录 放到 category_list 中，用这个目录列表给文章对应的id。
     def get_category_list(self, html_section_list, category_list):
          for html_section in html_section_list:
-             html_section_xml_parser = etree.HTMLParser()
-             html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+             title_pattern = "<title>.*</title>"
+             title_result = re.findall(title_pattern, html_section)[0]
+             article_title = title_result.replace("<title>", "").replace("</title>", "")
+             
+             
+             print 'title extract from get_category_list function :'
+             print  article_title
+             if article_title == u"目录":
+                 # 获取所有目录索引节点via 正则表达式,xml 中的text属性，有中文就会出现乱码
+                 #html_section_xml_parser = etree.HTMLParser()
+                 #html_section_tree = etree.parse(StringIO(html_section), html_section_xml_parser)
+                 #category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
 
-             if "".join(html_section_tree.xpath('.//title')[0].itertext()) == "目录":
-
-                 # 获取所有目录索引节点via etree
-                 category_index_node_list = html_section_tree.xpath('.//div [@class="block1"]//h2')
-
+                 article_title_pattern = '<h2>.*?</h2>'
+                 article_title_list = re.findall(article_title_pattern, html_section)
                  # 获取所有文字索引
-                 for category_index_node in category_index_node_list:
-                     category_list.append(category_index_node.text)
+                 for article_title in article_title_list:
+                     category_list.append(article_title.replace("<h2>", "").replace("</h2>", ""))
+                 #for category_index_node in category_index_node_list:
+                 #    category_list.append(category_index_node.text)
                  break
 
     def modify_img_url(self, html_section, vmagid, url_magazine_img_str):
