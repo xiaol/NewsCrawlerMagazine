@@ -458,23 +458,29 @@ class VivaSpider(scrapy.Spider):
         for title in title_list:
             # 记录article_tile 下有几篇文章
             count = 0
-            if title == '封面' or title == '封底' or title == '目录':
+            if title == '封面' or title == '封底':
                 continue
-
+            title_pattern = "<title>.*</title>"
             for html_section in html_section_list:
-                title_pattern = "<title>.*</title>"
                 title_result = re.findall(title_pattern, html_section)[0]
-                article_title = title_result.replace("<title>", "").replace("</title>", "")
-                if title in article_title:
+                # print 'title_result :'
+                # print title_result
+                if title.encode('utf-8') in title_result:
                     article_item = ArticleItem()
                     article_item['item_type'] = 'article_item'
                     article_item['magazine_id'] = vmagid
                     count += 1
+                    print 'title :'
+                    print title
+                    article_title = title_result.replace("<title>", "").replace("</title>", "")
+                    print 'article_title :'
+                    print article_title
+
                     article_item['title'] = article_title
-                    if title == article_title:
+                    if title.encode('utf-8') == article_title:
                         article_item['article_id'] = index + 1
                     else:
-                        article_index = article_title.replace(title, "").replace("(","").replace(")","")
+                        article_index = article_title.replace(title.encode('utf-8'), "").replace("(","").replace(")","")
                         article_item['article_id'] = str(index + int(article_index))
 
                     modified_html_section = self.modify_img_url(html_section, vmagid, url_magazine_img_str)
@@ -482,7 +488,7 @@ class VivaSpider(scrapy.Spider):
 
                     yield article_item
                     # 最后去掉此 html_section
-                    html_section_list.remove(html_section)
+                    #html_section_list.remove(html_section)
                 else:
                     continue
 
@@ -516,9 +522,11 @@ class VivaSpider(scrapy.Spider):
             elif article_title == '封面':
                 article_item['article_id'] = '1'
                 article_item['html'] = html_section
-            else :
+            elif article_title == '封底' :
                 article_item['article_id'] = str(back_cover_index)
                 article_item['html'] = html_section
+            else:
+                continue
             yield article_item
 
     # 从包含目录的html_section中获取杂志的目录 放到 category_list 中，用这个目录列表给文章对应的id。
@@ -534,7 +542,7 @@ class VivaSpider(scrapy.Spider):
 
                  # 获取所有文字索引
                  for category_index_node in category_index_node_list:
-                     category_list.append("".join(category_index_node.itertext()))
+                     category_list.append(category_index_node.text)
                  break
 
     def modify_img_url(self, html_section, vmagid, url_magazine_img_str):
