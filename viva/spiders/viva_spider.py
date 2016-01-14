@@ -84,6 +84,12 @@ class VivaSpider(RedisSpider):
         else:
             return True
 
+    def valid_channel_name_in_redis(self, channel_name):
+        if self.r.get(channel_name):
+            return False
+        else:
+            return True
+
     def valid_id_check(self, vmagid):
         if vmagid in self.vmagid_set:
             return False
@@ -116,6 +122,11 @@ class VivaSpider(RedisSpider):
             channel = Channel
 
             channel.channel_name = topic_node.attrib['name']
+            if not self.valid_channel_name_in_redis(channel.channel_name):
+                continue
+            else:
+                self.r.set(channel.channel_name, 'valid')
+
             channel.channel_id  = topic_node.attrib['topicid']
 
             channel_item['channel'] = channel

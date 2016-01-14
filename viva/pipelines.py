@@ -222,7 +222,7 @@ class TopicPipeline(object):
             json_data = json.dumps(temp_dict, ensure_ascii = False)
             print 'topic block :'
             print json_data
-            #ret = requests.post(es_magazine_topic_block_url, json_data)
+            ret = requests.post(es_magazine_topic_block_url, json_data)
 
             es_magazine_topic_block_item_url = es_base_url +'topic_block_item/'
             #pos_host_block_item_url = pos_host_url + "bdp/magazine/item"
