@@ -22,7 +22,6 @@ import scrapy
 print sys.getdefaultencoding()
 reload(sys)
 sys.setdefaultencoding('utf-8')
-#from scrapy_redis.spiders import RedisSpider
 
 print uniout
 print sys.getdefaultencoding()
@@ -39,7 +38,8 @@ from BeautifulSoup import BeautifulSoup as bs
 import datetime
 from datetime import date
 
-class VivaSpider(scrapy.Spider):
+from scrapy_redis.spiders import RedisSpider
+class VivaSpider(RedisSpider):
 
     r = redis.StrictRedis('localhost', port=6379, db=0)
     name = 'viva'
